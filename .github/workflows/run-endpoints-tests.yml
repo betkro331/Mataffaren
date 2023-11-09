@@ -42,9 +42,6 @@ jobs:
       # of npm install -> installs all npm modules
       # mentioned in package.json, preferably during CI
     - run: npm ci
-      # if the project has a npm run build command
-      # then runs (not needed right now but keep)
-    - run: npm run build --if-present
       # Run with No hangup in order not to block
       # the terminal so that we can run tests
     - run: nohup npm run backend &
