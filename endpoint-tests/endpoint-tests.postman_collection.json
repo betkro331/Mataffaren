@@ -1,0 +1,1072 @@
+{
+	"info": {
+		"_postman_id": "bba416ab-6e16-455c-ab85-dbaa35f896bc",
+		"name": "MATAFFAREN TESTS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27013547"
+	},
+	"item": [
+		{
+			"name": "Categories",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"//check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"//Check that we have a response time of < 1 sec\r",
+							"pm.test('The response time should be below 0.5 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"})\r",
+							"\r",
+							"//Check that there are at least 10 main categories/children\r",
+							"pm.test('There should be at least 10 main categories', () => {\r",
+							"    pm.expect(responseData.children.length).to.be.at.least(10);\r",
+							"\r",
+							"});\r",
+							"\r",
+							"\r",
+							"//Check that each main category has the properties id, title and URL\r",
+							"pm.test('Each main category should have the properties id title and URL', () => {\r",
+							"    for(let category of responseData.children){\r",
+							"        //Empty string -> falsy. String with content is truthy -> convert to true using !!\r",
+							"        //i.e. empty string not allowed.\r",
+							"        pm.expect(!!category.id).to.be.true;\r",
+							"        pm.expect(!!category.title).to.be.true;\r",
+							"        pm.expect(!!category.url).to.be.true;\r",
+							"        //check that datatype is string for both title and url\r",
+							"        pm.expect(category.id).to.be.string;\r",
+							"        pm.expect(category.title).to.be.string;\r",
+							"        pm.expect(category.url).to.be.string;\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"\r",
+							"//Check that each main category has at least one sub category (except for the last one \"Lotter\", which has no children)\r",
+							"pm.test('Each main category (except the last one) should have subcategories', () => {\r",
+							"    for (let i = 0; i < responseData.children.length; i++) {\r",
+							"        if (i < responseData.children.length - 1) {\r",
+							"            pm.expect(responseData.children[i].children.length).to.be.at.least(1);\r",
+							"        } else {\r",
+							"            break;\r",
+							"        }\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"\r",
+							"//Check that there are at least \"n\" sub categories the 6 first main categories\r",
+							"pm.test('There should be at least \"n\" sub categories in the first 6 main categories', () => {\r",
+							"    pm.expect(responseData.children[0]['children'].length).to.be.at.least(5);\r",
+							"    pm.expect(responseData.children[1]['children'].length).to.be.at.least(5);\r",
+							"    pm.expect(responseData.children[2]['children'].length).to.be.at.least(8);\r",
+							"    pm.expect(responseData.children[3]['children'].length).to.be.at.least(10);\r",
+							"    pm.expect(responseData.children[4]['children'].length).to.be.at.least(5);\r",
+							"    pm.expect(responseData.children[5]['children'].length).to.be.at.least(5);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							"//Save the responseData as an environment variable and console log result\r",
+							"// 'categoryData' survives btw requests\r",
+							"pm.environment.set('categoryData', JSON.stringify(responseData));\r",
+							"// console.log(pm.environment.get('categoryData'));\r",
+							"\r",
+							"// A counter for products within a main category to fetch (only strings can be set)\r",
+							"pm.environment.set('categoryCounter', '0');\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');\r",
+							"// pm.environment.set('domain', 'http://localhost:4000');\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/leftMenu/categorytree",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"leftMenu",
+						"categorytree"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list within main category",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');\r",
+							"\r",
+							"// Unpack from JSON all the categories so that the data structure can loop through\r",
+							"// Note! Works only if the whole collection is run\r",
+							"// Note! Environment variables do not survive btw requests or btw Pre-req-Scripts and Tests\r",
+							"let categories = JSON.parse(pm.environment.get('categoryData'));\r",
+							"// console.log(categories);\r",
+							"\r",
+							"// Get the category counter and convert to number (using +)\r",
+							"let categoryCounter = +pm.environment.get('categoryCounter');\r",
+							"\r",
+							"\r",
+							"// Get the category part of the url and set it as an environment variable\r",
+							"let urlCategoryPart = categories.children[categoryCounter].url;\r",
+							"pm.environment.set('urlCategoryPart', urlCategoryPart);\r",
+							"\r",
+							"\r",
+							"// Add 1 to the categoryCounter environment variable\r",
+							"pm.environment.set('categoryCounter', categoryCounter + 1);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Unpack from JSON all the categories so that the data structure can loop through\r",
+							"// Note! Works only if the whole collection is run\r",
+							"// Note! Environment variables do not survive btw requests or btw Pre-req-Scripts and Tests\r",
+							"let categories = JSON.parse(pm.environment.get('categoryData'));\r",
+							"// console.log(categories);\r",
+							"\r",
+							"// Get the category counter and convert to number (using +)\r",
+							"let categoryCounter = +pm.environment.get('categoryCounter');\r",
+							"\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(\"THE RESPONSE\", responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"//check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"//Check that we have a response time of < 1 sec\r",
+							"pm.test('The response time should be below 1 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"})\r",
+							"\r",
+							"// Check than we have at least two product in a main category\r",
+							"// pm.test('There should be at least 2 product in a main category', () => {\r",
+							"//     pm.expect(responseData.results.length).to.be.at.least(2);\r",
+							"// });\r",
+							"\r",
+							"// Check that we have at least 8 products in a main category (except the last that should have 2)\r",
+							"pm.test('There should be at least 8 products in a main category (except the last one)', () => {\r",
+							"    if (responseData.results.length - 1) {\r",
+							"        pm.expect(responseData.results.length).to.be.at.least(2);\r",
+							"    } \r",
+							"    else {\r",
+							"        pm.expect(responseData.results.length).to.be.at.least(8);\r",
+							"    } \r",
+							"    \r",
+							"});\r",
+							"\r",
+							"\r",
+							"// Repeat/loop this request until we have requested all main categories.\r",
+							"// Repeat with new varable data for the url. Runs until last category.\r",
+							"// Note! Below 'Get productlist...' have to be exactely the same as the name of the request\r",
+							"if(categories.children[categoryCounter]){\r",
+							"    postman.setNextRequest('Product list within main category');\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/{{urlCategoryPart}}?size=30&page=0&sort=topRated",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"{{urlCategoryPart}}"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "30"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "sort",
+							"value": "topRated"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list in subcategory (lvl 1)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"//check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"//Check that we have a response time of less than 0.5 sec\r",
+							"pm.test('The response time should be below 0.5 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"})\r",
+							"\r",
+							"// Check that the API returns the expected data format (JSON).\r",
+							"pm.test(\"The response is JSON\", () => {\r",
+							"    let contentType = pm.response.headers.get(\"Content-Type\");\r",
+							"    pm.expect(contentType).to.include(\"application/json\");\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 7 product in subcategory \"frukt\"\r",
+							"pm.test('There should be at least 7 products in a subcategory', () => {\r",
+							"    pm.expect(responseData.results.length).to.be.at.least(7);\r",
+							"\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 5 subcatagories in subcategory \"frukt\"\r",
+							"pm.test('There should be at least 5 subcategories in the subcategory \"frukt\"', () => {\r",
+							"    pm.expect(responseData.subCategories.length).to.be.at.least(5);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/frukt-och-gront/frukt",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"frukt-och-gront",
+						"frukt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list in subcategory (lvl 2)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"//check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"//Check that we have a response time of less than 0.5 sec\r",
+							"pm.test('The response time should be below 0.5 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"})\r",
+							"\r",
+							"// Check that we have at least 5 product in subcategory \"citrusfrukt\"\r",
+							"pm.test('There should be at least 5 products in a subcategory \"citrusfrukt\"', () => {\r",
+							"    pm.expect(responseData.results.length).to.be.at.least(5);\r",
+							"});\r",
+							"\r",
+							"// Check specific products with their names in the subcategory \"citrusfrukt\"\r",
+							"pm.test('Test specific product names in subcategory (lvl 3)', () => {\r",
+							"    pm.expect(responseData.results[0].name).to.eql(\"Satsumas Klass 1\")\r",
+							"    pm.expect(responseData.results[1].name).to.eql(\"Lime Klass 1\")\r",
+							"    pm.expect(responseData.results[2].name).to.eql(\"Citron Eko Klass 1\")\r",
+							"});\r",
+							"\r",
+							"// console.log(Object.keys(responseData));\r",
+							"\r",
+							"// Check that the subcategory's categoryInfo and superCategories are not empty\r",
+							"pm.test('Check that categoryInfo and superCategories are not empty', () => {\r",
+							"    pm.expect(responseData.categoryInfo).to.not.be.empty;\r",
+							"    pm.expect(responseData.superCategories).to.not.be.empty;\r",
+							"});\r",
+							"\r",
+							"// Check that the subcategory's superCategories have key and correct value\r",
+							"pm.test('Check that superCategories have key/value', () => {\r",
+							"    pm.expect(responseData.superCategories[0].name).to.eql(\"Alla varor\");\r",
+							"    pm.expect(responseData.superCategories[1].name).to.eql(\"Frukt & Grönt\");\r",
+							"    pm.expect(responseData.superCategories[2].name).to.eql(\"Frukt\");\r",
+							"    pm.expect(responseData.superCategories[2].parentCategoryName).to.eql(\"Frukt & Grönt\");\r",
+							"\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/frukt-och-gront/frukt/citrusfrukt",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"frukt-och-gront",
+						"frukt",
+						"citrusfrukt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list sorted by price (desc)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"//check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"//Check that we have a response time of < 1 sec\r",
+							"pm.test('The response time should be below 1 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"})\r",
+							"\r",
+							"// Check that the API returns the expected data format (JSON).\r",
+							"pm.test(\"The response is JSON\", () => {\r",
+							"    let contentType = pm.response.headers.get(\"Content-Type\");\r",
+							"    pm.expect(contentType).to.include(\"application/json\");\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 30 product in subcategory\r",
+							"pm.test('There should be at least 30 products in a subcategory', () => {\r",
+							"    pm.expect(responseData.results.length).to.be.at.least(30);\r",
+							"\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 5 subcatagories in subcategory \"kött, chark och fågel\"\r",
+							"pm.test('There should be at least 5 subcategories in the subcategory of \"kott-chark-och-fagel\"', () => {\r",
+							"    pm.expect(responseData.subCategories.length).to.be.at.least(5);\r",
+							"});\r",
+							"\r",
+							"// Check that chosen sorting \"Pris (Dyrast - Billigast)\" returns a list with descending prices.\r",
+							"pm.test(\"Check descending prices by priceValue\", () => {\r",
+							"    // Return the list by priceValue\r",
+							"    let prices = responseData.results.map(function (result) {\r",
+							"        return parseFloat(result.priceValue);\r",
+							"    });\r",
+							"    // Make a copy and sort descending\r",
+							"    let sortedPriceList = prices.slice().sort(function (b, a) {\r",
+							"        return a - b;\r",
+							"    });\r",
+							"    // Compare response to sorted list\r",
+							"    pm.expect(prices).to.eql(sortedPriceList);\r",
+							"\r",
+							"    // console.log('prices: ', prices);\r",
+							"    // console.log('sortedPriceList: ', sortedPriceList);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/kott-chark-och-fagel?size=30&page=0&sort=price-desc",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"kott-chark-och-fagel"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "30"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "sort",
+							"value": "price-desc"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list sorted by popularity",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"//check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"//Check that we have a response time of < 1 sec\r",
+							"pm.test('The response time should be below 1 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"})\r",
+							"\r",
+							"// Check than we have at least 30 product in subcategory \"bröd och kakor\"\r",
+							"pm.test('There should be at least 30 products in a subcategory \"brod-och-kakor\"', () => {\r",
+							"    pm.expect(responseData.results.length).to.be.at.least(30);\r",
+							"\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 5 subcatagories in subcategory \"bröd och kakor\"\r",
+							"pm.test('There should be at least 5 subcategories in the subcategory of \"brod-och-kakor\"', () => {\r",
+							"    pm.expect(responseData.subCategories.length).to.be.at.least(5);\r",
+							"});\r",
+							"\r",
+							"// Check that chosen sorting \"Populärast\" returns a list with most popular products (top rated order)\r",
+							"pm.test(\"Check products by ranking (popularity)\", () => {\r",
+							"    // Return the list by popularity\r",
+							"    let rankedList = responseData.results.map(function (result) {\r",
+							"        return parseFloat(result.ranking);\r",
+							"    });\r",
+							"    // Make a copy and sort highest to lowest ranking\r",
+							"    let listCopy = rankedList.slice().sort(function (b, a) {\r",
+							"        return a - b;\r",
+							"    });\r",
+							"    // Compare response to sorted list\r",
+							"    pm.expect(rankedList).to.eql(listCopy);\r",
+							"    // console.log('listCopy: ', listCopy);\r",
+							"    // console.log('rankedList: ', rankedList);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/brod-och-kakor?size=30&page=0&sort=topRated",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"brod-och-kakor"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "30"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "sort",
+							"value": "topRated"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list sorted by compare price (asc)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"//check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"//Check that we have a response time of < 1 sec\r",
+							"pm.test('The response time should be below 1 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"})\r",
+							"\r",
+							"// Check that the API returns the expected data format (JSON).\r",
+							"pm.test(\"The response is JSON\", () => {\r",
+							"    let contentType = pm.response.headers.get(\"Content-Type\");\r",
+							"    pm.expect(contentType).to.include(\"application/json\");\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 30 product in subcategory\r",
+							"pm.test('There should be at least 30 products in a subcategory', () => {\r",
+							"    pm.expect(responseData.results.length).to.be.at.least(30);\r",
+							"\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 5 subcatagories in subcategory \"fisk och skaldjur\"\r",
+							"pm.test('There should be at least 5 subcategories in the subcategory of \"fisk-och-skaldjur\"', () => {\r",
+							"    pm.expect(responseData.subCategories.length).to.be.at.least(5);\r",
+							"});\r",
+							"\r",
+							"// Check that chosen sorting \"Jämförpris (Billigast-Dyrast)\" returns a list with ascending prices/kg.\r",
+							"pm.test(\"Check ascending prices by ComparePrice\", () => {\r",
+							"    // Return the list by ComparedPrice\r",
+							"    let prices = responseData.results.map(function (result) {\r",
+							"        return result.comparePrice;\r",
+							"    });\r",
+							"    // Make a copy and sort ascending\r",
+							"    let sortedPriceList = prices.slice().sort(function (a, b) {\r",
+							"        return a - b;\r",
+							"    });\r",
+							"    // Compare response to sorted list\r",
+							"    pm.expect(prices).to.eql(sortedPriceList);\r",
+							"\r",
+							"    // console.log('prices: ', prices);\r",
+							"    // console.log('sortedPriceList: ', sortedPriceList);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/fisk-och-skaldjur?size=30&page=0&sort=compareprice-asc",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"fisk-och-skaldjur"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "30"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "sort",
+							"value": "compareprice-asc"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list soda sorted by compare price (desc)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"// Check that status code is 200(OK)\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Check that response time is less than 0.5 sec\r",
+							"pm.test('The response time should be below 0.5 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"})\r",
+							"\r",
+							"// Check that the response is not empty\r",
+							"pm.test(\"Response from API should not be empty\", () => {\r",
+							"    pm.response.to.not.eql(null);\r",
+							"});\r",
+							"\r",
+							"// Check that the API returns the expected data format (JSON).\r",
+							"pm.test(\"The response is JSON\", () => {\r",
+							"    let contentType = pm.response.headers.get(\"Content-Type\");\r",
+							"    pm.expect(contentType).to.include(\"application/json\");\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 30 products in sub category soda\r",
+							"pm.test('There should be at least 30 products in sub category \"dryck/läsk\"', () => {\r",
+							"    pm.expect(responseData.results.length).to.be.at.least(30);\r",
+							"});\r",
+							"\r",
+							"// // Check that the subcategory's categoryInfo and superCategories are not empty\r",
+							"// pm.test('Check that categoryInfo and superCategories are not empty', () => {\r",
+							"//     pm.expect(responseData.results).to.not.be.empty;\r",
+							"//     pm.expect(responseData.results.code).to.not.be.empty;\r",
+							"// });\r",
+							"\r",
+							"// Loop through and check that every product's compare price is less or equal to the previous product\r",
+							"let isSorted = true;\r",
+							"\r",
+							"for (var i = 1; i < responseData.length; i++) {\r",
+							"    if (responseData[i].comparePrice > responseData[i - 1].comparePrice) {\r",
+							"        isSorted = false;\r",
+							"        break;\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Check compare price in descending order\", () => {\r",
+							"    pm.expect(isSorted).to.be.true;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/dryck/lask?size=30&page=0&sort=compareprice-desc",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"dryck",
+						"lask"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "30"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "sort",
+							"value": "compareprice-desc"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list sorted in alphabetic order (desc)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"// Check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"// Check that response time is less than  1 sec\r",
+							"pm.test('The response time should be below 1 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"})\r",
+							"\r",
+							"// Check that chosen sorting \"Ö-A\" returns a list in descending alphabetic order.\r",
+							"pm.test('Check list of product names in alphabetic order (descending)', () => {\r",
+							"    // Return list (with descending names)\r",
+							"    let names = responseData.results.map(function (result) {\r",
+							"        return result.name;\r",
+							"    });\r",
+							"    // Copy list and sort list in descending order using localeCompare (for Swedish ÅÄÖ)\r",
+							"    let sortedNames = names.slice().sort(function (a, b) {\r",
+							"        return b.localeCompare(a, 'sv'); \r",
+							"    });\r",
+							"    // Compare response to sorted list\r",
+							"    pm.expect(names).to.eql(sortedNames);\r",
+							"\r",
+							"    // console.log('names: ', names);\r",
+							"    // console.log('sortedNames: ', sortedNames);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/frukt-och-gront/frukt?size=30&page=0&sort=name-desc",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"frukt-och-gront",
+						"frukt"
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "30"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "sort",
+							"value": "name-desc"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product list coffee",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"// Check that status code is 200(OK)\r",
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Check that response time is less than 0.5 sec\r",
+							"pm.test('The response time should be below 0.5 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"})\r",
+							"\r",
+							"// Check that the response is not empty\r",
+							"pm.test(\"Response from API should not be empty\", () => {\r",
+							"    pm.response.to.not.eql(null);\r",
+							"});\r",
+							"\r",
+							"// Check that the API returns the expected data format (JSON).\r",
+							"pm.test(\"The response is JSON\", () => {\r",
+							"    let contentType = pm.response.headers.get(\"Content-Type\");\r",
+							"    pm.expect(contentType).to.include(\"application/json\");\r",
+							"});\r",
+							"\r",
+							"// Check than we have at least 7 products in sub category instant coffee\r",
+							"pm.test('There should be at least 7 products in sub category', () => {\r",
+							"    pm.expect(responseData.results.length).to.be.at.least(7);\r",
+							"});\r",
+							"\r",
+							"// Check data types\r",
+							"pm.test(\"Test data types of the response\", () => {\r",
+							"    pm.expect(responseData).to.be.an(\"object\");\r",
+							"    pm.expect(responseData.results[0]).to.be.an(\"object\");\r",
+							"    pm.expect(responseData.results[0].image).to.be.an(\"object\");\r",
+							"    pm.expect(responseData.results[0].name).to.be.a(\"string\");\r",
+							"    pm.expect(responseData.results[0].priceValue).to.be.a(\"number\");\r",
+							"    pm.expect(responseData.results[1]).to.be.an(\"object\");\r",
+							"    pm.expect(responseData.results[1].image).to.be.an(\"object\");\r",
+							"    pm.expect(responseData.results[1].name).to.be.a(\"string\");\r",
+							"    pm.expect(responseData.results[1].priceValue).to.be.a(\"number\");\r",
+							"});\t\r",
+							"\r",
+							"// Check three of the products' names and codes\r",
+							"pm.test('Test specific product names and codes', () => {\r",
+							"    pm.expect(responseData.results[0].name).to.eql(\"Qualità Rossa Kaffekapslar\");\r",
+							"    pm.expect(responseData.results[0].code).to.eql(\"101345472_ST\");\r",
+							"    pm.expect(responseData.results[1].name).to.eql(\"Crema&gusto Classico Kaffekapslar\");\r",
+							"    pm.expect(responseData.results[1].code).to.eql(\"101345471_ST\");\r",
+							"    pm.expect(responseData.results[5].name).to.eql(\"Classico Espresso Kapslar\");\r",
+							"    pm.expect(responseData.results[5].code).to.eql(\"101357190_ST\");\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/c/dryck/kaffe",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"c",
+						"dryck",
+						"kaffe"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Specific procuct",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get the data from the response unpacked from JSON to a JS-object\r",
+							"let responseData = pm.response.json();\r",
+							"console.log(responseData);\r",
+							"\r",
+							"\r",
+							"// --- TESTS ---\r",
+							"//check that the status code is 200 (OK)\r",
+							"pm.test('The status code of the response should be 200', () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							"//Check that we have a response time of < 0.5 sec\r",
+							"pm.test('The response time should be below 0.5 sec', () => {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"})\r",
+							"\r",
+							"// Get specific product and check name, manufacturer and diet type\r",
+							"pm.test('Test specific product name, manufacturer and diet type', function () {\r",
+							"    pm.expect(responseData.name).to.eql(\"Panda Lakrits Original\")\r",
+							"    pm.expect(responseData.dietTypeInformation).to.eql(\"Vegan\")\r",
+							"    pm.expect(responseData.manufacturer).to.eql(\"Panda\")\r",
+							"\r",
+							"});\r",
+							" \r",
+							"// Check data types\r",
+							"pm.test(\"Test data types of the response\", () => {\r",
+							"  pm.expect(responseData).to.be.an(\"object\");\r",
+							"  pm.expect(responseData.name).to.be.a(\"string\");\r",
+							"  pm.expect(responseData.image).to.be.an(\"object\");\r",
+							"  pm.expect(responseData.ingredients).to.be.a(\"string\");\r",
+							"  pm.expect(responseData.priceValue).to.be.a('number');\r",
+							"});\t"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set the base URL\r",
+							"pm.environment.set('baseURL', 'http://localhost:5173');"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/axfood/rest/p/101524478_ST",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"axfood",
+						"rest",
+						"p",
+						"101524478_ST"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
