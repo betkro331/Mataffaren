@@ -6,10 +6,10 @@
   "scripts": {
     "start": "concurrently \"npm:backend\" \"npm:dev\"",
     "backend": "node --watch backend/index.cjs",
+    "test": "newman run endpoint-tests/endpoint-tests.postman_collection.json",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "test": "newman run endpoint-tests/endpoint-tests.postman_collection.json"
+    "preview": "vite preview"
   },
   "dependencies": {
     "concurrently": "^8.0.1",
