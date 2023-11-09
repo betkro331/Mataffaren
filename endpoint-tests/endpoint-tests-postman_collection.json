@@ -15,7 +15,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -165,7 +165,7 @@
 							"let categoryCounter = +pm.environment.get('categoryCounter');\r",
 							"\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(\"THE RESPONSE\", responseData);\r",
+							"// console.log(\"THE RESPONSE\", responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -248,7 +248,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -326,7 +326,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -413,7 +413,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -519,7 +519,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -618,7 +618,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -724,7 +724,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -836,7 +836,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -924,7 +924,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
@@ -1022,7 +1022,7 @@
 						"exec": [
 							"// Get the data from the response unpacked from JSON to a JS-object\r",
 							"let responseData = pm.response.json();\r",
-							"console.log(responseData);\r",
+							"// console.log(responseData);\r",
 							"\r",
 							"\r",
 							"// --- TESTS ---\r",
