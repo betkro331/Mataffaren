@@ -1,16 +1,16 @@
 ## Mataffaren API
 
 ### Projektbeskrivning:
-Detta projekt innehåller en liten matbutik där tester skrivits och körts i Postman, Newman och Github Actions.
+Detta projekt innehåller en liten matbutik där tester skrivits och körts i Postman, Newman, Github Actions och Hoppscotch.
 
 ### Postman, Newman och GithubActions
-Projektet har använt Postman för att genomföra manuella och automatiska tester. Data är organiserad i en Postman Collection så att alla tester kan köras med "Run Collection". De flesta tester kan också köras var för sig. Från Postman är collection exporterad och testen kan köras med Newman i terminalen. Git commit pull och push triggar igång testerna i Github Actions.
+Projektet har använt Postman för att genomföra manuella och automatiska tester. Data är organiserad i en Postman Collection så att alla tester kan köras med "Run Collection". De flesta tester kan också köras var för sig. Från Postman är collection exporterad och testerna kan köras med Newman i terminalen. Git commit pull och push triggar igång testerna i Github Actions.
 
 ### Manuella tester och kartläggning av API:t 
-Kartläggningen av API:t finns beskrivet i excelarket "Kartläggning API Mataffären" som en bilaga till detta repo. Där beskrivs kortfattat routes, vilken information som kan hämtas, vilket svar som förväntas vid en GET-request samt om GUI:t ger samma svar som Postman-requesten. Jag har inte tittat igenom alla kategorier utan koncenterat mig på vissa. Jag hittade inga uppenbart stora skillnader, men reagerade på att jämförpris blev konstigt eftersom Mataffären jämför pris/kg eller pris/liter med pris/styck inom samma produktkategori. Ibland fanns också något specialerbjudanden så som "Välj & blanda! 2 för" och då fanns två olika 'comparePrice' under samma produkt, vilket gör jämförelsen svårare. Gällande "popularitet" (ranking) fanns inte alla varor med. Många varor har '0' eller 'null' i ranking, vilket gör listan efter popularitet lite missvisande. Jag använde både Firefox och Chrome dev tool för att jämföra hur Network/XHR var att arbeta med. Svarstiderna var mellan 200-400 msek vid sidladdning, vilket är rimligt.
+Kartläggningen av API:t finns beskrivet i excelarket "Kartläggning API Mataffären" som en bilaga till detta repo. Där beskrivs kortfattat routes, vilken information som kan hämtas, vilket svar som förväntas vid en GET-request samt om GUI:t ger samma svar som Postman-requesten. Jag har inte tittat igenom alla kategorier utan koncenterat mig på vissa. Jag hittade inga uppenbart stora skillnader, men reagerade på att jämförpris blev konstigt eftersom Mataffären jämför pris/kg eller pris/liter med pris/styck inom samma produktkategori. Ibland fanns också något specialerbjudanden så som "Välj & blanda! 2 för" och då fanns två olika 'comparePrice' under samma produkt, vilket gjorde jämförelsen svårare. Gällande "popularitet" (ranking) fanns inte alla varor med. Många varor har '0' eller 'null' i ranking, vilket gjorde listan efter popularitet lite missvisande. Jag använde både Firefox och Chrome dev tool för att jämföra hur Network/XHR var att arbeta med. Svarstiderna var mellan 200-400 msek vid sidladdning, vilket jag anser är rimligt.
 
 ### Automatiserade tester i Postman
-För varje testfall i Postman anges en kort beskrivning för vad testet syftar till (återges bara generellt här i detta dokument). Testernas enskilda svarstider var rimliga, mellan 130-400 ms. Den slutgiltiga collection i "runner" tog 10s 960ms vilket igenomsnitt blev 278 ms för 111 tester, även det rimlig tid.
+För varje testfall i Postman anges en kort beskrivning av vad testet syftar till (återges bara generellt här i detta dokument). Testernas enskilda svarstider var rimliga, mellan 130-400 ms. Den slutgiltiga collection i "runner" tog 10 s 960 ms vilket igenomsnitt blev 278 ms för 111 tester, även det en rimlig svarstid.
 
 Jag gjorde totalt 11 GET-requests med mellan 3-7 tester i varje. Att statuskod "200 OK" returneras samt svarstider på under 500 respektive 1000 ms, har jag med i varje test. 
 Andra testexempel är: 
@@ -30,6 +30,7 @@ Andra testexempel är:
  Jag gjorde lite olika tester och vissa av dem är hårdkodade. Inte den snyggaste koden kanske, men lärorikt för att se och lära hur det fungerar. 
 
 *Tester på sortering*
+
 Vid de olika sorteringsalternativen provade jag att göra på olika sätt i olika test. I de flesta test gjorde jag en kopia på responsdatan och sorterade den uppifrån/nerifrån beroende på, och jämförde sedan de två "listorna" för att se att de stämde överens. I ett test provade jag att istället använda mig av boolean genom att loopa och kolla att varans jämförpris är lägre eller samma som föregående vara. Om inte, så ändras variabeln isSorted till false. I slutet kontrolleras om isSorted är true, och i så fall blir testresultatet "pass".
 
 Jag gjorde fem GET-requests på olika sortering:
