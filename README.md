@@ -56,7 +56,7 @@ Testerna gav förväntade resultat efter en del fixande och trixande. Jag använ
 Testerna gick igenom både enskilt och som "Run collection" i Postman. Det gick också bra att exportera och köra dem med Newman. I Github Actions kraschade testerna för att jag hade glömt att ta bort en massa console.log:ar. När jag utkommenterade dem i Postman och körde om hela proceduren fungerade det bra, förutom att ett test ibland fallerar i Github Actions eftersom tiden är satt till max 500 ms. Detta har jag inte ändrat eftersom jag ändå tycker att det är rimligt att ett test ska klara under 500 ms.
 
 
-## Tester i Hoppscotch.io 
+### Tester i Hoppscotch.io 
 Jag testade att göra några enkla tester i Hoppscotch bara för att testa syntaxen och jämföra med Postman. Här är några test som gick igenom:
 
 pw.test('The status code of the response should be 200', () => {
@@ -73,12 +73,10 @@ pw.test("Response body to be datatype object", () => {
 
 pw.test('There should be at least 7 products in main category "frukt-och-gront"', () => {
     pw.expect(pw.response.body.results.length >= 7).toBe(true);
-
 });
 
-pw.test('There should be at least 5 subcategories in the sub category "frukt"', () => {
-    pw.expect(pw.response.body.subCategories.length >=5).toBe(true);
-});
- 
+pw.test('There should be at least 5 products in the sub category "frukt"', () => 
+{ pw.expect(pw.response.body.subCategories.length >=5).toBe(true); });
 
-## Thomas test-motor baserat på Node.js + Chai.js
+### Thomas test-motor baserat på Node.js + Chai.js
+Jag hade tänkt att försöka lägga till några tester i detta projekt men jag kom inte åt Nodehills sajt under helgen 11-12/11 så jag bestämde mig för att hoppa över denna del och lämna in ändå.
