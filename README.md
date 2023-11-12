@@ -36,7 +36,7 @@ Vid de olika sorteringsalternativen provade jag att göra på olika sätt i olik
 Jag gjorde fem GET-requests på olika sortering:
 
 ##### Product list sorted by price (descending)
-Innehåller ett test som verifierar att sortering på ”Pris (Dyrast-Billigast)” verkligen returnerar en sådan lista genom att jämföra responsen 'priceValue' och med en kopia sorterad i fallande ordning.
+Requesten innehåller ett test som verifierar att sortering på ”Pris (Dyrast-Billigast)” verkligen returnerar en sådan lista genom att jämföra responsen 'priceValue' och med en kopia sorterad i fallande ordning.
 
 ##### Product list sorted by popularity/ranking
 Ett test verifierar att sortering på "Populärast" verkligen returnerar en rankad lista genom att jämföra responsen 'ranking' med en kopia sorterad från högsta till lägsta värde.
@@ -54,7 +54,7 @@ Testet verifierar att sortering på "Ö-A" returnerar en lista med produktnamnen
 
 Testerna gav förväntade resultat efter en del fixande och trixande. Jag använde mig av console.log väldigt mycket, och upptäckte på så sätt att vissa tester var "false positive" eftersom jag inte testade det jag trodde att jag testade eller att jag testade tomma strängar. Jag lade också in andra värden för att "testa testerna" så att de fallerade. 
 
-Testerna gick igenom både enskilt och som "Run collection" i Postman. Det gick också bra att exportera och köra dem med Newman. I Github Actions kraschade testerna för att jag hade glömt att ta bort en massa console.log:ar. När jag utkommenterade dem i Postman och körde om hela proceduren fungerade det bra, förutom att ett test ibland fallerar i Github Actions eftersom tiden är satt till max 500 ms. Detta har jag inte ändrat eftersom jag ändå tycker att det är rimligt att ett test ska klara under 500 ms.
+Testerna gick igenom både enskilt och som "Run collection" i Postman. Det gick också bra att exportera och köra dem med Newman. I Github Actions kraschade testerna för att jag hade glömt att ta bort en massa console.log:ar. När jag utkommenterade dem i Postman och körde om hela proceduren fungerade det bra, förutom att ett test ibland fallerar i Github Actions eftersom svarstiden är satt till max 500 ms. Detta har jag inte ändrat eftersom jag ändå tycker att det är rimligt att ett test ska klara under 500 ms.
 
 
 ### Tester i Hoppscotch.io 
@@ -80,4 +80,4 @@ pw.test('There should be at least 5 products in the sub category "frukt"', () =>
 { pw.expect(pw.response.body.subCategories.length >=5).toBe(true); });
 
 ### Thomas test-motor baserat på Node.js + Chai.js
-Jag hade tänkt att försöka lägga till några tester i detta projekt men jag kom inte åt Nodehills sajt under helgen 11-12/11 så jag bestämde mig för att hoppa över denna del och lämna in ändå.
+Jag hade tänkt att försöka lägga till några tester i detta projekt men jag kom inte åt Nodehills sajt under söndagen den 12/11 så jag bestämde mig för att hoppa över denna del och lämna in ändå.
