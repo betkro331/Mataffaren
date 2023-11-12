@@ -29,25 +29,25 @@ Andra testexempel är:
 
  Jag gjorde lite olika tester och vissa av dem är hårdkodade. Inte den snyggaste koden kanske, men lärorikt för att se och lära hur det fungerar. 
 
-*Tester på sortering*
+#### Tester på sortering
 
 Vid de olika sorteringsalternativen provade jag att göra på olika sätt i olika test. I de flesta test gjorde jag en kopia på responsdatan och sorterade den uppifrån/nerifrån beroende på, och jämförde sedan de två "listorna" för att se att de stämde överens. I ett test provade jag att istället använda mig av boolean genom att loopa och kolla att varans jämförpris är lägre eller samma som föregående vara. Om inte, så ändras variabeln isSorted till false. I slutet kontrolleras om isSorted är true, och i så fall blir testresultatet "pass".
 
 Jag gjorde fem GET-requests på olika sortering:
 
-#### Product list sorted by price (descending)
+##### Product list sorted by price (descending)
 Innehåller ett test som verifierar att sortering på ”Pris (Dyrast-Billigast)” verkligen returnerar en sådan lista genom att jämföra responsen 'priceValue' och med en kopia sorterad i fallande ordning.
 
-#### Product list sorted by popularity/ranking
+##### Product list sorted by popularity/ranking
 Ett test verifierar att sortering på "Populärast" verkligen returnerar en rankad lista genom att jämföra responsen 'ranking' med en kopia sorterad från högsta till lägsta värde.
 
-#### Product list sorted by compare price (ascending)
+##### Product list sorted by compare price (ascending)
 Ett test kontrollerar att sortering på "Jämförspris (Billigast-Dyrast)" returnerar en lista med jämförspris i rätt ordning genom att jämföra responsen 'comparePrice' med en kopia sorterad från lägsta till högsta värde.
 
-#### Product list soda sorted by compare price (descending)
+##### Product list soda sorted by compare price (descending)
 Testet loopar och kontrollerar att varje produkts 'comparePrice' är lägre eller lika med den förra produktens.
 
-#### Product list sorted in alphabetic order (descending)
+##### Product list sorted in alphabetic order (descending)
 Testet verifierar att sortering på "Ö-A" returnerar en lista med produktnamnen sorterade från Ö till A. Bing Chat tipsade om att använda localeCompare('sv'), vilket jag gjorde, och sortering enligt svensk standard på ÅÄÖ fungerade bra.
 
 ### Slutsatser om testerna i Postman, Newman, Github Actions
